@@ -9,7 +9,7 @@ mod router;
 async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::new("tower_http=trace,async_graphql=trace,trace")
+            EnvFilter::new("tower_http=debug,async_graphql=debug,debug")
         )
         .init();
 

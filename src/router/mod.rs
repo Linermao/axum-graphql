@@ -4,7 +4,7 @@ use axum::{
     routing::get,
     Extension, Router,
 };
-use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
 use async_graphql::http::{GraphiQLSource};
 use axum::response::Html;
 use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
@@ -20,6 +20,7 @@ pub fn build_router(schema: AppSchema) -> Router {
 
     Router::new()
         .route("/graphql", get(graphiql).post(graphql_handler))
+        .route_service("/ws", GraphQLSubscription::new(schema.clone()))
         .layer(Extension(schema))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
@@ -35,5 +36,6 @@ async fn graphql_handler(
 async fn graphiql() -> Html<String> {
     Html(GraphiQLSource::build()
         .endpoint("/graphql")
+        .subscription_endpoint("/ws")
         .finish())
 }

@@ -1,15 +1,16 @@
-use async_graphql::{EmptyMutation, EmptySubscription, Schema, extensions::Tracing};
+use async_graphql::{Schema, extensions::{ApolloTracing, Tracing}};
 
-use crate::graphql::query::QueryRoot;
+use crate::graphql::{mutation::MutationRoot, query::QueryRoot, subscription::SubscriptionRoot};
 
 pub mod query;
 pub mod mutation;
 pub mod subscription;
 
-pub type AppSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+pub type AppSchema = Schema<QueryRoot, MutationRoot, SubscriptionRoot>;
 
 pub fn build_schema() -> AppSchema {
-    Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+    Schema::build(QueryRoot, MutationRoot, SubscriptionRoot)
         .extension(Tracing)
+        .extension(ApolloTracing)
         .finish()
 }

@@ -1,0 +1,10 @@
+[package]
+name = "db-migration"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+include_dir = "0.7.4"
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid"] }
+tokio = { version = "1.48.0", features = ["full"] }

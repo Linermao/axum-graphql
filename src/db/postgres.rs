@@ -1,5 +1,5 @@
-use sqlx::{PgPool, postgres::PgPoolOptions};
 use crate::prelude::*;
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 
 /// Initialize PostgreSQL: create connection pool and ensure required tables exist.
@@ -23,29 +23,7 @@ pub async fn init_postgres(database_url: &str) -> Option<PgPool> {
         }
     };
 
-    // initial table if empty
-    if let Err(e) = init_table(&pool).await {
-        error!("Failed to initialize database tables: {:#?}", e);
-        return None;
-    }
-
     Some(pool)
-}
-
-/// Initialize required tables if they do not exist
-async fn init_table(pool: &PgPool) -> Result<(), sqlx::Error> {
-    let query = r#"
-    CREATE TABLE IF NOT EXISTS projects (
-        project_id UUID PRIMARY KEY,
-        name TEXT NOT NULL
-    );
-    "#;
-
-    sqlx::query(query)
-        .execute(pool)
-        .await?;
-
-    Ok(())
 }
 
 /// Detailed error printer for sqlx errors

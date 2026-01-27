@@ -2,8 +2,12 @@ use async_graphql::*;
 use futures_util::Stream;
 use std::time::Duration;
 use tokio_stream::StreamExt;
+use uuid::Uuid;
 
-use crate::{domain::project::tree::TreeEvent, graphql::AppState};
+use crate::{
+    domain::project::{rf_canva::RfEvent, tree::TreeEvent},
+    graphql::AppState,
+};
 
 pub struct SubscriptionRoot;
 
@@ -19,13 +23,32 @@ impl SubscriptionRoot {
             })
     }
 
-    async fn tree_events(&self, ctx: &Context<'_>) -> impl Stream<Item = TreeEvent> {
+    async fn tree_events(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+    ) -> impl Stream<Item = TreeEvent> {
         let state = ctx.data::<AppState>().unwrap();
         let mut rx = state.events.subscribe_tree();
 
         async_stream::stream! {
             while let Ok(ev) = rx.recv().await {
-                yield ev;
+                if ev.project_id() == project_id {
+                    yield ev;
+                }
+            }
+        }
+    }
+
+    async fn rf_events(&self, ctx: &Context<'_>, canva_id: Uuid) -> impl Stream<Item = RfEvent> {
+        let state = ctx.data::<AppState>().unwrap();
+        let mut rx = state.events.subscribe_rf();
+
+        async_stream::stream! {
+            while let Ok(ev) = rx.recv().await {
+                if ev.canva_id() == canva_id {
+                    yield ev;
+                }
             }
         }
     }

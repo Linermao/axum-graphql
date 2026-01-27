@@ -1,3 +1,4 @@
+pub mod rf_canva;
 pub mod tree;
 
 use async_graphql::SimpleObject;
@@ -11,6 +12,8 @@ use crate::db;
 pub struct Project {
     pub project_id: Uuid,
     pub name: String,
+
+    pub default_rf_canva_id: Option<Uuid>,
 }
 
 pub struct ProjectService<'a> {
@@ -35,6 +38,7 @@ impl<'a> ProjectService<'a> {
         Ok(Project {
             project_id,
             name: name.to_string(),
+            default_rf_canva_id: None,
         })
     }
 }

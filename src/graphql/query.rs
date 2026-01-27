@@ -5,6 +5,7 @@ use crate::{
     domain::{
         project::{
             Project, ProjectService,
+            rf_canva::{RfEdge, RfNode, RfService},
             tree::{TreeNode, TreeService},
         },
         user,
@@ -21,14 +22,14 @@ impl QueryRoot {
         user::hello(id.as_str(), &name)
     }
 
-    async fn projects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Project>> {
+    async fn get_projects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Project>> {
         let state = ctx.data::<AppState>()?;
         let service = ProjectService { db: &state.db };
         let result = service.get_projects().await?;
         Ok(result)
     }
 
-    async fn project(
+    async fn get_project_by_id(
         &self,
         ctx: &Context<'_>,
         project_id: Uuid,
@@ -39,7 +40,7 @@ impl QueryRoot {
         Ok(result)
     }
 
-    async fn tree(
+    async fn get_tree_nodes(
         &self,
         ctx: &Context<'_>,
         project_id: Uuid,
@@ -49,7 +50,35 @@ impl QueryRoot {
             db: &state.db,
             events: &state.events,
         };
-        let nodes = service.tree(project_id).await?;
+        let nodes = service.get_tree_nodes(project_id).await?;
         Ok(nodes)
+    }
+
+    async fn get_rf_nodes(
+        &self,
+        ctx: &Context<'_>,
+        canva_id: Uuid,
+    ) -> async_graphql::Result<Vec<RfNode>> {
+        let state = ctx.data::<AppState>()?;
+        let service = RfService {
+            db: &state.db,
+            events: &state.events,
+        };
+        let nodes = service.get_rf_nodes(canva_id).await?;
+        Ok(nodes)
+    }
+
+    async fn get_rf_edges(
+        &self,
+        ctx: &Context<'_>,
+        canva_id: Uuid,
+    ) -> async_graphql::Result<Vec<RfEdge>> {
+        let state = ctx.data::<AppState>()?;
+        let service = RfService {
+            db: &state.db,
+            events: &state.events,
+        };
+        let edges = service.get_rf_edges(canva_id).await?;
+        Ok(edges)
     }
 }

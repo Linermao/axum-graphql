@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::domain::project::tree::TreeNode;
 
-pub async fn fetch_tree(pool: &PgPool, project_id: Uuid) -> Result<Vec<TreeNode>, sqlx::Error> {
+pub async fn get_tree_nodes(pool: &PgPool, project_id: Uuid) -> Result<Vec<TreeNode>, sqlx::Error> {
     sqlx::query_as!(
         TreeNode,
         r#"
@@ -33,6 +33,35 @@ pub async fn insert_tree_node(
         node.label,
         node.parent_id,
         node.position
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn delete_tree_node(
+    pool: &PgPool,
+    project_id: Uuid,
+    node_id: Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+        WITH RECURSIVE subtree AS (
+            SELECT id
+            FROM project_tree_nodes
+            WHERE project_id = $1
+              AND id         = $2
+            UNION ALL
+            SELECT c.id
+            FROM project_tree_nodes c
+            JOIN subtree p ON c.parent_id = p.id
+        )
+        DELETE FROM project_tree_nodes
+        WHERE id IN (SELECT id FROM subtree)
+          AND project_id = $1
+        "#,
+        project_id,
+        node_id,
     )
     .execute(pool)
     .await?;

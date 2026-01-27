@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use tokio::sync::broadcast;
 
 use crate::{
-    domain::project::tree::TreeEvent,
+    domain::project::{rf_canva::RfEvent, tree::TreeEvent},
     graphql::{mutation::MutationRoot, query::QueryRoot, subscription::SubscriptionRoot},
 };
 
@@ -23,12 +23,17 @@ pub struct AppState {
 
 pub struct EventBus {
     tree_event: broadcast::Sender<TreeEvent>,
+    rf_event: broadcast::Sender<RfEvent>,
 }
 
 impl EventBus {
     pub fn new(buffer: usize) -> Self {
         let (tree_event, _) = broadcast::channel(buffer);
-        Self { tree_event }
+        let (rf_event, _) = broadcast::channel(buffer);
+        Self {
+            tree_event,
+            rf_event,
+        }
     }
 
     /* -------- Tree -------- */
@@ -39,6 +44,14 @@ impl EventBus {
 
     pub fn subscribe_tree(&self) -> broadcast::Receiver<TreeEvent> {
         self.tree_event.subscribe()
+    }
+
+    pub fn publish_rf(&self, event: RfEvent) {
+        let _ = self.rf_event.send(event);
+    }
+
+    pub fn subscribe_rf(&self) -> broadcast::Receiver<RfEvent> {
+        self.rf_event.subscribe()
     }
 }
 
